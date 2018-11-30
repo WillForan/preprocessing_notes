@@ -33,14 +33,12 @@ passwords are
 
 * Considerations
  * task vs rest (bandpass, motion censor)
- * slice acquisition
  * distortion correction
- * tr 
- * voxel size
- * tolerance for manipulation
+ * voxel size (smoothing)
+ * tolerance for manipulation (wavelet despiking? ica_aroma? bandpass?)
 
 * Steps
-  [[term:bash -c "preprocessFunctional -help | less +/1\)"]]
+  [[term:bash -c "preprocessFunctional -help | less +1\\\)\ "]]
 
    [[term:./afni_petrest.bash]]
   
@@ -59,7 +57,6 @@ passwords are
 
   https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf#page=17
 
-  
 ** m - Motion correction
 
   * people move, the RF coil does not.
@@ -120,7 +117,7 @@ TODO:
    * can use median or mean
    * allow comparing across subject part 2
 
-**  a - ICA-AROMA (fancy, slow)
+** a - ICA-AROMA (fancy, slow)
    * Automatic Removal Of Motion Artifacts, matching similarity to pre-identified spatial and temporal independent components
    * Pruim 2015 demonstrated on task and rest
    
@@ -128,6 +125,7 @@ TODO:
 
    * only allow higher frequency signal. give high frequencies a pass.
    * remove scanner drifts, coil interference or slow vascular/metabolic oscillations ([[https://en.wikibooks.org/wiki/Neuroimaging_Data_Processing/Temporal_Filtering][wikibooks]])
+     TODO: how to set
 ** r - regression (resting state)
 
    * useful for resting state to remove nuisance signal
@@ -148,7 +146,26 @@ TODO:
    is on the estimates of the variance of the individual subjects betas 
      #+END_QUOTE
 
+
+   
+minimal/fast: nsdkm_
+fancy/slow:   Abranswudkmt_
+
+task: f  nswdkmt_
+rest: br nswdkmt_
+
 * Links
-  https://github.com/WillForan/preprocessing_notes
-  https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf
-  https://github.com/LabNeuroCogDevel/fmri_processing_scripts/
+  * this: https://github.com/WillForan/preprocessing_notes
+  * ppfunc: https://github.com/LabNeuroCogDevel/fmri_processing_scripts/
+  * general writeups:
+    https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf
+    http://www.leixulab.net/paper/2011HandbookfMRI.pdf
+
+  * "cited"
+    https://www.ncbi.nlm.nih.gov/pubmed/25770991
+    https://afni.nimh.nih.gov/pub/dist/doc/misc/3dREMLfit/3dREMLfit.pdf
+    https://www.ncbi.nlm.nih.gov/pubmed/24657353
+    https://en.wikibooks.org/wiki/Neuroimaging_Data_Processing/Temporal_Filtering
+
+  * resources:
+    andy's brain blog
