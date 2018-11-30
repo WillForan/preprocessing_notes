@@ -26,6 +26,25 @@ cp -r petrest_11289_20151105/ wf
 passwords are
  [[term:less cred.txt]]
 
+* Links
+  * this: https://github.com/WillForan/preprocessing_notes
+  * ppfunc: https://github.com/LabNeuroCogDevel/fmri_processing_scripts/
+  * preprocessing
+    https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf
+    http://www.leixulab.net/paper/2011HandbookfMRI.pdf
+    http://andysbrainblog.blogspot.com/2012/06/smoothing-in-afni.html
+
+  * "cited"
+    https://www.ncbi.nlm.nih.gov/pubmed/25770991
+    https://afni.nimh.nih.gov/pub/dist/doc/misc/3dREMLfit/3dREMLfit.pdf
+    https://www.ncbi.nlm.nih.gov/pubmed/24657353
+    https://en.wikibooks.org/wiki/Neuroimaging_Data_Processing/Temporal_Filtering
+
+  * tools:
+    https://fmriprep.readthedocs.io/en/stable/workflows.html
+    https://bids.neuroimaging.io/bids_spec.pdf
+
+   
 * Why
   * increase signal to noise
 
@@ -41,6 +60,13 @@ passwords are
    * nipy.algorithms.registration.SpaceTimeRealign
    * wavelet
 
+* Considerations
+ * multiband? have reference?
+ * distortion correction
+ * voxel size (smoothing)
+ * tolerance for manipulation (wavelet despiking? ica_aroma? bandpass?)
+ * task vs rest (bandpass, motion censor)
+
 * Inputs
 ** scanner: sequences/protocols
    * anat - mprage/t1w
@@ -53,28 +79,38 @@ passwords are
    * nifti (=*.nii.gz=)
    * others: img/hdr, HEAD/BRIK, mgz, gii/gii.gz
 
-* Considerations
- * multiband? have reference?
- * distortion correction
- * voxel size (smoothing)
- * tolerance for manipulation (wavelet despiking? ica_aroma? bandpass?)
- * task vs rest (bandpass, motion censor)
-
 * Example preprocessFunctional
-  * simplest (10 mins for 10 trs)
-preprocessFunctional -custom_slice_times sliceTimings.1D -tr 1.5 -4d func.nii.gz -mprage_bet mprage_bet.nii.gz -warpcoef mprage_warpcoef.nii.gz
+  * start with e.g. func.nii.gz (and mprage.nii.gz)
+  * TODO: end with prefix:
+  * getting there:
+    * simplest (10 mins for 10 trs)
+      #+BEGIN_SRC 
+       preprocessFunctional -custom_slice_times sliceTimings.1D -tr 1.5 -4d func.nii.gz -mprage_bet mprage_bet.nii.gz -warpcoef mprage_warpcoef.nii.gz
+      #+END_SRC 
 
-  * pet rac1 *rest* (1.5 hours, 1.3 G)
-preprocessFunctional -tr 1.5  -4d func.nii.gz -func_struc_dof 6 -smoothing_kernel 5 -mprage_bet mprage_bet.nii.gz -warpcoef mprage_warpcoef.nii.gz -wavelet_despike -wavelet_threshold 10 -4d_slice_motion -distortion_dir distortion -bandpass_filter 0.009 .08 -rescaling_method 10000_globalmedian -template_brain MNI_2.3mm -warp_interpolation spline -constrain_to_template y -motion_censor fd=0.5,dvars=5 -custom_slice_times sliceTimings.1D -nuisance_file nuisance_regressors.txt -nuisance_regression 6motion,d6motion,csf,dcsf,wm,dwm
+    * pet rac1 *rest* (1.5 hours, 1.3 G)
+      #+BEGIN_SRC 
+       preprocessFunctional -tr 1.5  -4d func.nii.gz -func_struc_dof 6 -smoothing_kernel 5 -mprage_bet mprage_bet.nii.gz -warpcoef mprage_warpcoef.nii.gz -wavelet_despike -wavelet_threshold 10 -4d_slice_motion -distortion_dir distortion -bandpass_filter 0.009 .08 -rescaling_method 10000_globalmedian -template_brain MNI_2.3mm -warp_interpolation spline -constrain_to_template y -motion_censor fd=0.5,dvars=5 -custom_slice_times sliceTimings.1D -nuisance_file nuisance_regressors.txt -nuisance_regression 6motion,d6motion,csf,dcsf,wm,dwm
+      #+END_SRC
 
- * MMY2_WM *task* 
-preprocessFunctional -tr 2 -slice_acquisition seqasc -4d func.nii.gz -mprage_bet mprage_bet.nii.gz -warpcoef mprage_warpcoef.nii.gz -wavelet_despike -wavelet_threshold 10 -smoothing_kernel 5 -4d_slice_motion -rescaling_method 100_voxelmean -template_brain MNI_3mm -func_struc_dof bbr -warp_interpolation spline -constrain_to_template y -motion_censor fd=0.9,dvars=21 -nuisance_file nuisance_regressors.txt -nuisance_compute 6motion,d6motion,csf,dcsf,wm,dwm -ica_aroma
+    * MMY2_WM *task* 
+      #+BEGIN_SRC 
+       preprocessFunctional -tr 2 -slice_acquisition seqasc -4d func.nii.gz -mprage_bet mprage_bet.nii.gz -warpcoef mprage_warpcoef.nii.gz -wavelet_despike -wavelet_threshold 10 -smoothing_kernel 5 -4d_slice_motion -rescaling_method 100_voxelmean -template_brain MNI_3mm -func_struc_dof bbr -warp_interpolation spline -constrain_to_template y -motion_censor fd=0.9,dvars=21 -nuisance_file nuisance_regressors.txt -nuisance_compute 6motion,d6motion,csf,dcsf,wm,dwm -ica_aroma
+      #+END_SRC
 
    
 * Steps
   [[term:bash -c "preprocessFunctional -help | less +1\\\)\ "]]
   [[term:./afni_petrest.bash]]
   
+
+** preprocessMprage 
+   * before processing BOLD, we need to have preprocessed the t1w anatomical image (mprage)
+   * essentially: skull strip and mni warp
+    #+BEGIN_SRC 
+   preprocessMprage -n mprage.nii.gz -r MNI_2mm 
+    #+END_SRC
+
 ** _ - reorient
    * orient the matrix as LPI (how the computer sees the data)
       Right	Left
@@ -86,10 +122,17 @@ preprocessFunctional -tr 2 -slice_acquisition seqasc -4d func.nii.gz -mprage_bet
    * each full brain timepoint measure is actually a collection of slices imaged at slighly different times (2d epi) 
    * top, middle, and bottom are imaged at a different times!
    * we want to estimate the value of each voxel as if all parts of the brain were measured at the same time
-   * ~-no_st~ to do no slide timing correction (3d epi @ 7T, correction in GLM)
-   * ~-custom_slice_times~ (multiband)
-
+     
   https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf#page=17
+  [[./img/st_savoy.png]]
+
+*** preprocessFunctional
+  
+    * ~--slice_acquisition~ seqasc, seqdesc, interleaved -- determines if slice or motion is done first
+    * ~-custom_slice_times~ (multiband) or
+    * ~-no_st~ to do no slide timing correction (3d epi @ 7T, correction in GLM)
+    * ~-st_first~ for slice timing to be done before motion correction
+
 
 ** m - Motion correction
 
@@ -101,9 +144,15 @@ preprocessFunctional -tr 2 -slice_acquisition seqasc -4d func.nii.gz -mprage_bet
   * /Volumes/Zeus/preproc/MMY2_WM/MHTask_voxmean_ica/11206_20130812/MultimodalWM_v1_run2
   [[./img/motion_MMY2WM_11206_2013_55-56.png]]
 
- TODO: options 
+
+  ~-mc_program~ takes either *mcflirt* or 3dvolreg
+  ~-motion_sinc~ - slower more accurate w/mcflirt
+  ~-mc_first~ - force motion correction to be first
+  ~-ref_vol~ - use this volume as the refernce (*mean*, index#, median)
 
 *** tm - 4D slice motion
+   * enable with ~-4d_slice_motion~ 
+   * uses nipy.algorithms.registration.SpaceTimeRealign
    * we can correct for motion in each slice for a better estimate
    * takes a lot longer
 
@@ -131,13 +180,19 @@ preprocessFunctional -tr 2 -slice_acquisition seqasc -4d func.nii.gz -mprage_bet
 ** u -"unwarpping" Fieldmap/spin echo  inhomogeneity correction
    * use a measure of strech/compression due to non uniform magnetization to undo
    * requires collecting a sequence independent of BOLD epi 
-   * see https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf#page=21
    * ~-fm_phase~, ~-fm_magnitude~, ~-fm_cfg~
    * ~ppDistortion~ with ~-distortion_dir~
    
   /Volumes/Zeus/preproc/petrest_rac1/MHRest_FM_ica/11488_20160226/unwarp/*mc*
   [[./img/fm_petracret1_11488_2016_14-48.png]]
 
+  https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf#page=21
+  http://www.leixulab.net/paper/2011HandbookfMRI.pdf#39
+  #+BEGIN_QUOTE
+    inhomogeneities in the magnetic field result in errors in the location of
+    structures in the resulting images. Most commonly, regions in the anterior prefrontal
+    cortex and orbitofrontal cortex are distorted. 
+  #+END_QUOTE
 
 ** w - warp (spatial normalization)
    * make our differently shaped (nonlinear) and positioned (linear) brains look the same
@@ -146,6 +201,8 @@ preprocessFunctional -tr 2 -slice_acquisition seqasc -4d func.nii.gz -mprage_bet
    * epi <-> t1 <-> MNI152 (+tlrc in afni -- but not actually Talairach)
      * 6th generation. Neuroimaging standard. lowres. spm/fsl/afni default to this
      * 2009c. better 1mm res. differs by up to 2mm. we use this
+   * ~-no_warp~  to skip this step
+   * ~-ref~ to set an exotic warp desitiation
    
    TODO: image of separate brains moved into mni
    
@@ -167,10 +224,12 @@ preprocessFunctional -tr 2 -slice_acquisition seqasc -4d func.nii.gz -mprage_bet
 *** preprocessFunctional
     * FWHM size given by ~-smoothing_kernel~. default is 5 (mm)
     * ~-smoother~ defaults to fsl's =susan=, can use =gaussian=
+   * ~-no_smooth~  to skip this step
 
 ** n - normalizing intensity (scaling)
    * can use median or mean
    * allow comparing across subject part 2
+   * ~-rescaling_method~ *10000_globalmedian* or 100_voxelmean
 
 ** a - ICA-AROMA (fancy, slow)
    * Automatic Removal Of Motion Artifacts, matching similarity to pre-identified spatial and temporal independent components
@@ -180,7 +239,11 @@ preprocessFunctional -tr 2 -slice_acquisition seqasc -4d func.nii.gz -mprage_bet
 
    * only allow higher frequency signal. give high frequencies a pass.
    * remove scanner drifts, coil interference or slow vascular/metabolic oscillations ([[https://en.wikibooks.org/wiki/Neuroimaging_Data_Processing/Temporal_Filtering][wikibooks]])
-     TODO: how to set
+   * ~-hp_filter~  with FWHM of TRs (volumes). default is 40 (80s with TR of 2).
+   * set relative to task trial length. Mostly arbitrary. http://mindhive.mit.edu/node/116
+     * really want to remove slow noise, most any value will do that.
+   * ~-no_hp~  to skip this step
+
 ** r - regression (resting state)
 
    * useful for resting state to remove nuisance signal
@@ -222,23 +285,3 @@ rest: br nswdkmt_
       consider removing =.preprocessfunctional_complete=
   * =.*_complete= - created for every finished step
     * remove to rerun a step
-
-* Links
-  * this: https://github.com/WillForan/preprocessing_notes
-  * ppfunc: https://github.com/LabNeuroCogDevel/fmri_processing_scripts/
-  * general writeups:
-    https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf
-    http://www.leixulab.net/paper/2011HandbookfMRI.pdf
-
-  * "cited"
-    https://www.ncbi.nlm.nih.gov/pubmed/25770991
-    https://afni.nimh.nih.gov/pub/dist/doc/misc/3dREMLfit/3dREMLfit.pdf
-    https://www.ncbi.nlm.nih.gov/pubmed/24657353
-    https://en.wikibooks.org/wiki/Neuroimaging_Data_Processing/Temporal_Filtering
-
-  * resources:
-  http://andysbrainblog.blogspot.com/2012/06/smoothing-in-afni.html
-
-  * tools:
-https://fmriprep.readthedocs.io/en/stable/workflows.html
-https://bids.neuroimaging.io/bids_spec.pdf
