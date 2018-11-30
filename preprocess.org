@@ -21,6 +21,9 @@ https://github.com/WillForan/preprocessing_notes
 /Volumes/Hera/Projects/demo/mr_preproc
 cp -r petrest_11289_20151105/ wf
 
+cd /Volumes/Hera/preproc/petrest_rac1/MHRest_FM_ica/11542_20171117
+
+
 
 
 passwords are
@@ -44,6 +47,11 @@ passwords are
     https://fmriprep.readthedocs.io/en/stable/workflows.html
     https://bids.neuroimaging.io/bids_spec.pdf
 
+* What
+ * measure blood flow
+ * over time points (timeseries)
+   
+ 
    
 * Why
   * increase signal to noise
@@ -80,8 +88,9 @@ passwords are
    * others: img/hdr, HEAD/BRIK, mgz, gii/gii.gz
 
 * Example preprocessFunctional
-  * start with e.g. func.nii.gz (and mprage.nii.gz)
-  * TODO: end with prefix:
+
+  * func.nii.gz -> brnaswudktm_func_4.nii.gz
+
   * getting there:
     * simplest (10 mins for 10 trs)
       #+BEGIN_SRC 
@@ -204,7 +213,7 @@ passwords are
    * ~-no_warp~  to skip this step
    * ~-ref~ to set an exotic warp desitiation
    
-   TODO: image of separate brains moved into mni
+   [[./img/warp.png]]
    
 ** s - smoothing
 *** what
