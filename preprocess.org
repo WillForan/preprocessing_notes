@@ -58,8 +58,10 @@ passwords are
 
    [[./img/afni_auto_corr.png]]
    [[./img/tsnr_vs_meanfd_fdthresh=10.jpeg]]
+high motion is always bad. 
 
 * Software
+  still a new field. not static
  * =afni_proc.py= (afni+freesurfer)
  * =fmriprep=     (minimal, fsl+ants+nipy+freesurfer)
  * =preprocessFunctional=
@@ -69,6 +71,7 @@ passwords are
    * wavelet
 
 * Considerations
+how data is aquired matters:
  * multiband? have reference?
  * distortion correction
  * voxel size (smoothing)
@@ -237,7 +240,7 @@ passwords are
 
 ** n - normalizing intensity (scaling)
    * can use median or mean
-   * allow comparing across subject part 2
+   * allow comparing across subject part 2 -- arbitrary unit to something like percent singal change
    * ~-rescaling_method~ *10000_globalmedian* or 100_voxelmean
 
 ** a - ICA-AROMA (fancy, slow)
@@ -247,6 +250,7 @@ passwords are
 ** f - filter (high pass, task)
 
    * only allow higher frequency signal. give high frequencies a pass.
+      - remove slow freq.
    * remove scanner drifts, coil interference or slow vascular/metabolic oscillations ([[https://en.wikibooks.org/wiki/Neuroimaging_Data_Processing/Temporal_Filtering][wikibooks]])
    * ~-hp_filter~  with FWHM of TRs (volumes). default is 40 (80s with TR of 2).
    * set relative to task trial length. Mostly arbitrary. http://mindhive.mit.edu/node/116
