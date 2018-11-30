@@ -1,0 +1,44 @@
+#+Title: Preprocessing
+
+* Pre-prerpoc IT
+connect to rhea -- tripple hop :(
+from a terminal (mobaxterm on windows)
+
+  * https://pastebin.com/1R8900fz 
+  * ~~ remote_rhea foran ~~
+
+#+BEGIN_SRC bash
+ pittid=YOURPITTID
+ ssh -AY \
+     -o Ciphers=+aes128-cbc \
+     -o KexAlgorithms=+diffie-hellman-group1-sha1 \
+     $pittid@unix.cssd.pitt.edu         -t ssh -AX \
+     WPC-4951@web-server.mrctr.upmc.edu -t ssh -AY \
+     lncd@rhea.wpic.upmc.edu
+     
+  xmessage 'hi'
+#+END_SRC
+
+$MRluna!899
+B@ngal0re
+
+* Why
+  * increase signal to noise
+   [[./afni_auto_corr.png]]
+   [[./tsnr_vs_meanfd_fdthresh=10.jpeg]]
+
+* Considerations
+ * task vs rest (bandpass, motion censor)
+ * slice acquisition
+ * distortion correction
+ * tr 
+ * voxel size
+ * tolerance for manipulation
+
+* Steps
+  [[term:bash -c "preprocessFunctional -help | less +/1\)"]]
+
+   [[term:./afni_petrest.bash]]
+
+* links
+https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf
