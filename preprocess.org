@@ -4,8 +4,6 @@
 connect to rhea -- tripple hop :(
 from a terminal (mobaxterm on windows)
 
-  * https://pastebin.com/1R8900fz 
-  * ~~ remote_rhea foran ~~
 
 #+BEGIN_SRC bash
  pittid=YOURPITTID
@@ -19,11 +17,17 @@ from a terminal (mobaxterm on windows)
   xmessage 'hi'
 #+END_SRC
 
-$MRluna!899
-B@ngal0re
+or copy paste from here:
+   https://pastebin.com/1R8900fz 
+and run  ~remote_rhea foran~
+
+passwords are
+ [[term:less cred.txt]]
+
 
 * Why
   * increase signal to noise
+
    [[./img/afni_auto_corr.png]]
    [[./img/tsnr_vs_meanfd_fdthresh=10.jpeg]]
 
@@ -39,6 +43,112 @@ B@ngal0re
   [[term:bash -c "preprocessFunctional -help | less +/1\)"]]
 
    [[term:./afni_petrest.bash]]
+  
+** _ - reorient
+   * orient the matrix as LPI (how the computer sees the data)
+      Right	Left
+      Anterior 	Posterior
+      Inferior 	Superior
+   * also remove first n volumes if told to (older protocols, automatically discarded now)
 
-* links
-https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf
+** t - Slice timing correction
+   * each full brain timepoint measure is actually a collection of slices imaged at slighly different times (2d epi) 
+   * top, middle, and bottom are imaged at a different times!
+   * we want to estimate the value of each voxel as if all parts of the brain were measured at the same time
+   * ~-no_st~ to do no slide timing correction (3d epi @ 7T, correction in GLM)
+
+  https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf#page=17
+
+  
+** m - Motion correction
+
+  * people move, the RF coil does not.
+    * the place in space we measure is not always the same place in the brain.
+  * we align all time points together (to the first, middle, or average)
+    * the measure of movement is stored: regression, censoring
+      
+TODO: list options
+TODO: find High motion subject
+
+** mt - 4D slice motion
+  * we can correct for motion in each slice for a better estimate of the true measure
+    * takes a lot longer
+
+** k - Skull strip, brain extract (bet), scalp
+   * we don't care about the skull. so don't spend time working on it, remove it instead
+     * intensity normalization (rescaling)
+     * spatial normalization (warping)
+
+** d - despike 
+   * what to do with obvious outliers? 3dDespike or wavelet_despike
+
+     #+BEGIN_QUOTE
+     Removes 'spikes' from the 3D+time input dataset and writes
+     a new dataset with the spike values replaced by something
+     more pleasing to the eye.
+     #+END_QUOTE
+     
+     ~-wavelet_despike~
+   #+BEGIN_QUOTE
+   data-driven, spatially-adaptive, wavelet-based method for identifying, modeling, and removing 
+   non-stationary events in fMRI time series, caused by head movement, without the need for data scrubbing.
+   ... We demonstrate robust removal of a range of different motion artifacts.
+   #+END_QUOTE
+
+** u -"unwarpping" Fieldmap/spin echo  inhomogeneity correction
+   * use a measure of strech/compression due to non uniform magnetization to undo
+   * requires collecting a sequence independent of BOLD epi 
+
+   https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf#page=21
+   
+   TODO: FM_UD shot
+
+** w - warp (spatial normalization)
+   * make our differently shaped (nonlinear) and positioned (linear) brains look the same
+   * allow comparing across subject part 1
+   * depends on ~preprocessMprage~
+   * epi <-> t1 <-> MNI152 (+tlrc in afni -- but not actually Talairach)
+     * 6th generation. Neuroimaging standard. lowres. spm/fsl/afni default to this
+     * 2009c. better 1mm res. differs by up to 2mm. we use this
+   
+   TODO: image of separate brains moved into mni
+   
+** s - smoothing
+TODO:
+
+** n - normalizing intensity (scaleing)
+   * can use median or mean
+   * allow comparing across subject part 2
+
+**  a - ICA-AROMA (fancy, slow)
+   * Automatic Removal Of Motion Artifacts, matching similarity to pre-identified spatial and temporal independent components
+   * Pruim 2015 demonstrated on task and rest
+   
+** f - filter (high pass, task)
+
+   * only allow higher frequency signal. give high frequencies a pass.
+   * remove scanner drifts, coil interference or slow vascular/metabolic oscillations ([[https://en.wikibooks.org/wiki/Neuroimaging_Data_Processing/Temporal_Filtering][wikibooks]])
+** r - regression (resting state)
+
+   * useful for resting state to remove nuisance signal
+   * for task, the next step is likely a GLM which can include nuisance regresses in the same model
+   * measure from white mater, csf, motion, and their derivatives
+** b - bandpass filter (resting state)
+   * throw out too low and too high (physio .3Hz, 1Hz)
+   * rsfMRI, unlike task, shouldn't have quick changes 
+   * e.g. ~-bandpass_filter 0.009 .08~
+
+** A - auto correlation removal 
+   * useful for within individual, not so much in group comparison
+   * 3dREMLfit to remove autocorrelation using ARMA(1,1) mode
+
+     #+BEGIN_QUOTE
+   Thresholded individual subject activation maps are potentially affected ...
+   The biggest effect of serial (AKA temporal) correlation ... 
+   is on the estimates of the variance of the individual subjects betas 
+     #+END_QUOTE
+
+* Links
+  https://github.com/WillForan/preprocessing_notes
+  https://ftp.nmr.mgh.harvard.edu/pub/docs/SavoyfMRI2014/fmri.april2011.pdf
+  https://github.com/LabNeuroCogDevel/fmri_processing_scripts/
